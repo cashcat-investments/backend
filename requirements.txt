@@ -1,0 +1,4 @@
+dependency-injector>=4.46.0
+fastapi[standard]>=0.115.12
+pyhumps>=3.8.0
+supabase>=2.15.1
