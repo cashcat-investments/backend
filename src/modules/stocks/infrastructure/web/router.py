@@ -1,7 +1,7 @@
 from typing import Annotated, List
 from fastapi import APIRouter, Depends, Request
 from src.stocks.service import StockService
-from src.containers import AplicationContainer
+from core.infrastructure.di.containers import AplicationContainer
 from dependency_injector.wiring import Provide, inject
 
 from src.stocks.models import STOCKS_PREFIX, StockQuote

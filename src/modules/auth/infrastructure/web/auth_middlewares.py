@@ -2,9 +2,10 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
-from src.containers import AplicationContainer  # Asegúrate que esta importación sea correcta para tu proyecto
-from src.auth.service import AuthService  # Para el tipado y la llamada directa al servicio
-from src.utils.logger import setup_logger
+from src.core.infrastructure.di.containers import AplicationContainer  # Asegúrate que esta importación sea correcta para tu proyecto
+from src.modules.auth.application.auth_service import AuthService  # Para el tipado y la llamada directa al servicio
+from src.core.infrastructure.logger.logger import setup_logger
+from src.modules.auth.infrastructure.web.auth_constants import AUTH_PREFIX
 
 logger = setup_logger("AuthMiddleware")
 
@@ -16,7 +17,7 @@ PUBLIC_PATHS = [
     "/redoc"          # Documentación de ReDoc
 ]
 # Prefijo para las rutas del servicio de autenticación (login, refresh, etc.)
-AUTH_SERVICE_PATHS_PREFIX = "/auth"
+AUTH_SERVICE_PATHS_PREFIX = f"/{AUTH_PREFIX}"
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:

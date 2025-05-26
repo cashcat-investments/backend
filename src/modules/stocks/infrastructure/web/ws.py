@@ -6,9 +6,9 @@ from src.auth.dependencies import get_websocket_user_session
 from src.auth.models import User
 from src.stocks.models import STOCKS_PREFIX
 from src.stocks.service import StockService
-from src.containers import AplicationContainer
+from core.infrastructure.di.containers import AplicationContainer
 from dependency_injector.wiring import Provide, inject
-from src.utils.logger import setup_logger
+from core.infrastructure.logger.logger import setup_logger
 
 logger = setup_logger('stocks.ws')
 

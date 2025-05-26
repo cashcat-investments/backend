@@ -1,14 +1,16 @@
-from src.auth.models import LocalLoginRequest, UserAndTokensResponse, User, LocalRegisterRequest
-from src.utils.supabase import Supabase
-from src.utils.logger import setup_logger
+from src.core.infrastructure.supabase.supabase import Supabase
+from src.core.infrastructure.logger.logger import setup_logger
+from src.modules.auth.domain.auth_entities import UserAndTokensResponse, User
+from src.modules.auth.domain.i_auth_repository import IAuthRepository
 
 logger = setup_logger("AuthRepository")
 
-class AuthRepository:
+class SupabaseAuthRepository(IAuthRepository):
     def __init__(self, supabase: Supabase):
         self.supabase = supabase.get_client()
 
-    async def login(self, request: LocalLoginRequest):
+
+    async def login_local(self, email: str, password: str):
         """
         Login a user with email and password \n
         Returns a `UserAndTokensResponse` if successful, \n
@@ -16,8 +18,8 @@ class AuthRepository:
         """
         try:
             response = self.supabase.auth.sign_in_with_password({
-                "email": request.email,
-                "password": request.password
+                "email": email,
+                "password": password
             })
             return UserAndTokensResponse(
                 user=User(
@@ -33,7 +35,7 @@ class AuthRepository:
             return None
 
 
-    async def register(self, request: LocalRegisterRequest):
+    async def register_local(self, email: str, password: str):
         """
         Register a new user with email and password \n
         Returns a `UserAndTokensResponse` if successful, \n
@@ -42,8 +44,8 @@ class AuthRepository:
 
         try:
             response = self.supabase.auth.sign_up({
-                "email": request.email,
-                "password": request.password
+                "email": email,
+                "password": password
             })
             return UserAndTokensResponse(
                 user=User(
@@ -57,8 +59,9 @@ class AuthRepository:
         except Exception as e:
             logger.error(e)
             return None
-        
-    async def sign_in_with_google(self, redirect_to: str):
+
+
+    async def sign_in_with_oauth_provider(self, redirect_to: str, provider: str):
         """
         Sign in with Google \n
         Returns a `UserAndTokensResponse` if successful, \n
@@ -66,7 +69,7 @@ class AuthRepository:
         """
         try:
             response = self.supabase.auth.sign_in_with_oauth({
-                "provider": "google",
+                "provider": provider,
                 "options": {
                     "redirect_to": redirect_to,
                 }
@@ -76,10 +79,11 @@ class AuthRepository:
         except Exception as e:
             logger.error(e)
             return None
-        
-    async def validate_google_code(self, code: str):
+
+
+    async def validate_code(self, code: str):
         """
-        Validate a Google code \n
+        Validate a code from an OAuth provider \n
         Returns a `UserAndTokensResponse` if successful, \n
         Returns `None` if failed
         """
@@ -102,6 +106,7 @@ class AuthRepository:
             logger.error(e)
             return None
 
+
     async def refresh_session(self, refresh_token: str):
         """
         Refresh a session \n
@@ -122,7 +127,8 @@ class AuthRepository:
         except Exception as e:
             logger.error(e)
             return None
-    
+
+
     async def validate_session(self, access_token: str):
         """
         Validate a session \n

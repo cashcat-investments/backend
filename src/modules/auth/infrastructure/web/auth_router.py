@@ -2,9 +2,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
-from src.containers import AplicationContainer
-from src.auth.service import AuthService
-from src.auth.models import AUTH_PREFIX, LocalLoginRequest, User, LocalRegisterRequest
+from src.core.infrastructure.di.containers import AplicationContainer
+from src.modules.auth.application.auth_service import AuthService
+from src.modules.auth.domain.auth_entities import User, UserAndTokensResponse
+from src.modules.auth.infrastructure.web.auth_constants import AUTH_PREFIX
+from src.modules.auth.infrastructure.web.auth_schemas import LocalLoginRequest, LocalRegisterRequest
 from dependency_injector.wiring import Provide, inject
 
 
@@ -19,16 +21,13 @@ async def login(
         Depends(Provide[AplicationContainer.auth_package.auth_service])
     ]
 ):
-    login_data = await auth_service.login(body)
+    login_data = await auth_service.login_local(body.email, body.password)
 
     if login_data is None:
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
     response = JSONResponse(content=login_data.user.model_dump())
-    response.set_cookie(key="access_token", value=login_data.access_token, httponly=False)
-    response.set_cookie(key="refresh_token", value=login_data.refresh_token, httponly=True)
-
-    return response
+    return _set_cookies(response, login_data)
 
 
 @router.post("/register/local", response_model=User)
@@ -40,16 +39,13 @@ async def register(
         Depends(Provide[AplicationContainer.auth_package.auth_service])
     ]
 ):
-    register_data = await auth_service.register(body)
+    register_data = await auth_service.register_local(body.email, body.password)
 
     if register_data is None:
         raise HTTPException(status_code=400, detail="User already exists")
 
     response = JSONResponse(content=register_data.user.model_dump())
-    response.set_cookie(key="access_token", value=register_data.access_token, httponly=False)
-    response.set_cookie(key="refresh_token", value=register_data.refresh_token, httponly=True)
-
-    return response
+    return _set_cookies(response, register_data)
 
 
 @router.post("/sign-in/google")
@@ -76,21 +72,27 @@ async def validate_google_code(
         Depends(Provide[AplicationContainer.auth_package.auth_service])
     ]
 ):
-    sign_in_data = await auth_service.validate_google_code(code)
+    sign_in_data = await auth_service.validate_code(code)
 
     if sign_in_data is None:
         raise HTTPException(status_code=400, detail="Invalid Google code")
     
     response = JSONResponse(content=sign_in_data.user.model_dump())
-    response.set_cookie(key="access_token", value=sign_in_data.access_token, httponly=False)
-    response.set_cookie(key="refresh_token", value=sign_in_data.refresh_token, httponly=True)
-
-    return response
+    return _set_cookies(response, sign_in_data)
 
 
 @router.post("/sign-out")
 async def sign_out():
     response = JSONResponse(content={"detail": "Logged out successfully"})
+    return _clear_cookies(response)
+
+
+def _set_cookies(response: JSONResponse, user_and_tokens: UserAndTokensResponse):
+    response.set_cookie(key="access_token", value=user_and_tokens.access_token, httponly=False)
+    response.set_cookie(key="refresh_token", value=user_and_tokens.refresh_token, httponly=True)
+    return response
+
+def _clear_cookies(response: JSONResponse):
     response.set_cookie(
         key="access_token",
         value='',

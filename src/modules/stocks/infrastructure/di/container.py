@@ -1,8 +1,8 @@
 from dependency_injector import containers, providers
 
 from src.stocks.service import StockService
-from src.utils.http_client import HTTPClient
-from src.settings import Settings
+from core.infrastructure.http.http_client import HTTPClient
+from core.infrastructure.config.settings import Settings
 from src.stocks.repositories import StockRepository
 
 class StocksContainer(containers.DeclarativeContainer):

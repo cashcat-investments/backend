@@ -1,5 +1,5 @@
 from supabase import create_client, Client
-from src.settings import Settings
+from src.core.infrastructure.config.settings import Settings
 
 class Supabase:
     def __init__(self, settings: Settings):

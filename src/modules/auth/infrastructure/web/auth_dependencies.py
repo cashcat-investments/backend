@@ -1,11 +1,10 @@
 from typing import Annotated
 from fastapi import WebSocket, Depends, Query, WebSocketException, status
-from src.auth.service import AuthService
-from src.containers import AplicationContainer
-from dependency_injector.wiring import Provide
-from src.auth.models import User
-from src.utils.logger import setup_logger
-from dependency_injector.wiring import inject
+from dependency_injector.wiring import inject, Provide
+from src.modules.auth.application.auth_service import AuthService
+from src.core.infrastructure.di.containers import AplicationContainer
+from src.modules.auth.domain.auth_entities import User
+from src.core.infrastructure.logger.logger import setup_logger
 
 logger = setup_logger('auth.dependencies')
 

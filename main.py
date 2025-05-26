@@ -1,16 +1,16 @@
 from fastapi import FastAPI
-from src.auth.middleware import AuthMiddleware
-from src.containers import AplicationContainer
+from src.modules.auth.infrastructure.web.auth_middlewares import AuthMiddleware
+from src.core.infrastructure.di.containers import AplicationContainer
 from starlette.middleware.cors import CORSMiddleware
-import src.stocks.router as stocks_router
-import src.stocks.ws as stocks_ws_router
-import src.auth.router as auth_router
+# import src.stocks.router as stocks_router
+# import src.stocks.ws as stocks_ws_router
+import src.modules.auth.infrastructure.web.auth_router as auth_router
 
 def create_app() -> FastAPI:
     container = AplicationContainer()
     container.wire(modules=[
-        stocks_router,
-        stocks_ws_router,
+        # stocks_router,
+        # stocks_ws_router,
         auth_router
     ])
 
@@ -25,8 +25,8 @@ def create_app() -> FastAPI:
     )
     fastapi_app.add_middleware(AuthMiddleware)
 
-    fastapi_app.include_router(stocks_router.router)
-    fastapi_app.include_router(stocks_ws_router.router)
+    # fastapi_app.include_router(stocks_router.router)
+    # fastapi_app.include_router(stocks_ws_router.router)
     fastapi_app.include_router(auth_router.router)
     return fastapi_app
 

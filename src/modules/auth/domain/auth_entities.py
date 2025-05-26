@@ -1,8 +1,6 @@
 from pydantic import BaseModel
 
 
-AUTH_PREFIX = "auth"
-
 class User(BaseModel):
     id: str
     role: str
