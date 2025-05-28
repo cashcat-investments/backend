@@ -1,26 +1,27 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
-
-from src.core.infrastructure.di.application_container import AplicationContainer
-from application.services.auth_service import AuthService
-from modules.auth.auth_constants import AUTH_PREFIX
-from src.modules.auth.infrastructure.models.auth_models import LoginLocalRequestModel, RegisterLocalRequestModel, UserAuthModel, OAuthResponseModel, TokensModel
 from dependency_injector.wiring import Provide, inject
 
+from src.application.services.auth_service import AuthService
+from src.infrastructure.config.application_container import AplicationContainer
+from src.application.dtos.auth_dtos import SignUpRequest
+from src.web.auth.auth_constants import AUTH_PREFIX
+from src.domain.entities.auth_entities import CredentialsEntity, OAuthResponseEntity, TokensEntity
+from src.domain.entities.user_entities import UserProfileEntity
 
 router = APIRouter(prefix=f'/{AUTH_PREFIX}', tags=[AUTH_PREFIX])
 
-@router.post("/login/local", response_model=UserAuthModel)
+@router.post("/login/local", response_model=UserProfileEntity)
 @inject
 async def login(
-    body: LoginLocalRequestModel,
-    auth_service: Annotated[
+    body: CredentialsEntity,
+    service: Annotated[
         AuthService,
         Depends(Provide[AplicationContainer.auth_service])
     ]
 ):
-    login_data = await auth_service.login_local(body)
+    login_data = await service.login_local(body)
 
     if login_data is None:
         raise HTTPException(status_code=400, detail="Invalid credentials")
@@ -29,16 +30,16 @@ async def login(
     return _set_cookies(response, login_data.tokens)
 
 
-@router.post("/register/local", response_model=UserAuthModel)
+@router.post("/register/local", response_model=UserProfileEntity)
 @inject
 async def register(
-    body: RegisterLocalRequestModel,
-    auth_service: Annotated[
+    body: SignUpRequest,
+    service: Annotated[
         AuthService,
         Depends(Provide[AplicationContainer.auth_service])
     ]
 ):
-    register_data = await auth_service.register_local(body.email, body.password)
+    register_data = await service.register_local(body)
 
     if register_data is None:
         raise HTTPException(status_code=400, detail="User already exists")
@@ -47,37 +48,37 @@ async def register(
     return _set_cookies(response, register_data.tokens)
 
 
-@router.post("/sign-in/google", response_model=OAuthResponseModel)
+@router.post("/sign-in/google", response_model=OAuthResponseEntity)
 @inject
 async def google_redirect(
     redirect_to: str,
-    auth_service: Annotated[
+    service: Annotated[
         AuthService,
         Depends(Provide[AplicationContainer.auth_service])
     ]
 ):
-    response = await auth_service.sign_in_with_google(redirect_to)
+    response = await service.sign_in_with_google(redirect_to)
     if response is None:
         raise HTTPException(status_code=500, detail="Failed to sign in with Google")
     return response
 
 
-@router.post("/sign-in/google/validate-code")
+@router.post("/sign-in/google/validate-code", response_model=UserProfileEntity)
 @inject
 async def validate_google_code(
     code: str,
-    auth_service: Annotated[
+    service: Annotated[
         AuthService,
         Depends(Provide[AplicationContainer.auth_service])
     ]
 ):
-    sign_in_data = await auth_service.validate_code(code)
+    sign_in_data = await service.validate_code(code)
 
     if sign_in_data is None:
         raise HTTPException(status_code=400, detail="Invalid Google code")
     
     response = JSONResponse(content=sign_in_data.user.model_dump())
-    return _set_cookies(response, sign_in_data)
+    return _set_cookies(response, sign_in_data.tokens)
 
 
 @router.post("/sign-out")
@@ -86,7 +87,7 @@ async def sign_out():
     return _clear_cookies(response)
 
 
-def _set_cookies(response: JSONResponse, tokens: TokensModel):
+def _set_cookies(response: JSONResponse, tokens: TokensEntity):
     response.set_cookie(key="access_token", value=tokens.access_token, httponly=False)
     response.set_cookie(key="refresh_token", value=tokens.refresh_token, httponly=True)
     return response

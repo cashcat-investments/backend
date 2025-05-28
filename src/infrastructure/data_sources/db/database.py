@@ -4,7 +4,7 @@ from typing import Any, Generator
 from sqlalchemy import create_engine, orm
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
-from src.core.infrastructure.logger.logger import setup_logger
+from src.infrastructure.utils.logger import setup_logger
 
 logger = setup_logger("Database")
 

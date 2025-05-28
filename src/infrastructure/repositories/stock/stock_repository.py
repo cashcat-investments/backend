@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import List
-from core.infrastructure.http.http_client import HTTPClient
 from src.stocks.models import StockQuote
+
+from src.infrastructure.shared.http.http_client import HTTPClient
 
 class StockRepository:
 

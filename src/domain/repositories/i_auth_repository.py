@@ -1,22 +1,25 @@
 from abc import ABC, abstractmethod
 from typing import Optional
-from domain.entities.auth_entities import AuthResultEntity, UserAuthEntity, LoginInputEntity, RegisterInputEntity, OAuthInputEntity, OAuthResponseEntity
+from src.domain.entities.auth_entities import AuthResultEntity, OAuthInputEntity, OAuthResponseEntity, CredentialsEntity
+from src.domain.entities.user_entities import UserEntity
 
 class IAuthRepository(ABC):
     @abstractmethod
-    async def login_local(self, payload: LoginInputEntity) -> Optional[AuthResultEntity]:
+    async def login_local(self, credentials: CredentialsEntity) -> Optional[AuthResultEntity]:
         """
         Login a user with email and password \n
-        Returns a `UserAndTokensResponse` if successful, \n
+        Receives a `CredentialsEntity` \n
+        Returns a `AuthResultEntity` if successful, \n
         Returns `None` if Invalid credentials
         """
         pass
 
     @abstractmethod
-    async def register_local(self, payload: RegisterInputEntity) -> Optional[AuthResultEntity]:
+    async def register_local(self, credentials: CredentialsEntity) -> Optional[AuthResultEntity]:
         """
         Register a new user with email and password \n
-        Returns a `UserAndTokensResponse` if successful, \n
+        Receives a `CredentialsEntity` \n
+        Returns a `AuthResultEntity` if successful, \n
         Returns `None` if User already exists
         """
         pass
@@ -34,7 +37,7 @@ class IAuthRepository(ABC):
     async def validate_code(self, code: str) -> Optional[AuthResultEntity]:
         """
         Validate a code from an OAuth provider \n
-        Returns a `UserAndTokensResponse` if successful, \n
+        Returns a `AuthResultEntity` if successful, \n
         Returns `None` if failed
         """
         pass
@@ -43,13 +46,13 @@ class IAuthRepository(ABC):
     async def refresh_session(self, refresh_token: str) -> Optional[AuthResultEntity]:
         """
         Refresh a session \n
-        Returns a `UserAndTokensResponse` if successful, \n
+        Returns a `AuthResultEntity` if successful, \n
         Returns `None` if refresh token is expired or invalid
         """
         pass
 
     @abstractmethod
-    async def validate_session(self, access_token: str) -> Optional[UserAuthEntity]:
+    async def validate_session(self, access_token: str) -> Optional[UserEntity]:
         """
         Validate a session \n
         Returns a `User` if successful, \n

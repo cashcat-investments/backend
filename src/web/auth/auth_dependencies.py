@@ -1,10 +1,10 @@
 from typing import Annotated
 from fastapi import WebSocket, Depends, Query, WebSocketException, status
 from dependency_injector.wiring import inject, Provide
-from application.services.auth_service import AuthService
-from core.infrastructure.di.application_container import AplicationContainer
-from domain.entities.auth_entities import UserAuth
-from src.core.infrastructure.logger.logger import setup_logger
+from src.application.services.auth_service import AuthService
+from src.infrastructure.config.application_container import AplicationContainer
+from src.domain.entities.user_entities import UserProfileEntity
+from src.infrastructure.utils.logger import setup_logger
 
 logger = setup_logger('auth.dependencies')
 
@@ -15,19 +15,19 @@ async def get_websocket_user_session(
         AuthService, Depends(Provide[AplicationContainer.auth_service])
     ],
     token: Annotated[str | None, Query()] = None
-) -> UserAuth:
+) -> UserProfileEntity:
     """
     Autentica una conexión WebSocket.
     Intenta primero con el token de acceso del query parameter.
     Si falla, intenta con el refresh_token de la cookie.
 
     Retorna:
-        user_info: User
+        user_info: UserProfileEntity
     
     Lanza:
         WebSocketException si la autenticación falla.
     """
-    user_info: UserAuth | None = None
+    user_info: UserProfileEntity | None = None
     logger.info(f"Validando sesión con token: {token}")
 
     if not token:
@@ -62,7 +62,7 @@ async def get_websocket_user_session(
             # Ajusta esto según lo que realmente devuelva tu servicio.
             new_tokens_obj = await auth_service.refresh_session(refresh_token_cookie)
             
-            if not new_tokens_obj or not hasattr(new_tokens_obj, 'access_token'):
+            if not new_tokens_obj or not hasattr(new_tokens_obj, 'tokens') or not hasattr(new_tokens_obj.tokens, 'access_token'):
                 logger.info("Refresh token inválido o fallo al emitir nuevos tokens.")
                 raise WebSocketException(
                     code=status.WS_1008_POLICY_VIOLATION,
@@ -70,7 +70,7 @@ async def get_websocket_user_session(
                 )
 
             # Validar el nuevo access_token inmediatamente
-            user_info_after_refresh = await auth_service.validate_session(new_tokens_obj.access_token)
+            user_info_after_refresh = await auth_service.validate_session(new_tokens_obj.tokens.access_token)
             
             if not user_info_after_refresh:
                 logger.info("El token de acceso recién refrescado es inválido.")

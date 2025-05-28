@@ -2,10 +2,10 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
-from src.core.infrastructure.di.application_container import AplicationContainer  # Asegúrate que esta importación sea correcta para tu proyecto
-from application.services.auth_service import AuthService  # Para el tipado y la llamada directa al servicio
-from src.core.infrastructure.logger.logger import setup_logger
-from modules.auth.auth_constants import AUTH_PREFIX
+from src.infrastructure.config.application_container import AplicationContainer
+from src.application.services.auth_service import AuthService  # Para el tipado y la llamada directa al servicio
+from src.infrastructure.utils.logger import setup_logger
+from src.web.auth.auth_constants import AUTH_PREFIX
 
 logger = setup_logger("AuthMiddleware")
 
@@ -88,7 +88,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 # o None/lanza excepción en caso de fallo.
                 new_tokens = await auth_service.refresh_session(refresh_token_cookie)
             except Exception as e:
-                # Aquí podrías loggear la excepción 'e' para depuración.
+                logger.error(f"Error al refrescar el token: {e}")
                 return JSONResponse(
                     status_code=401,
                     content={"detail": "Fallo al refrescar el token."} # Mensaje genérico por seguridad
@@ -96,12 +96,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
             # Verifica que new_tokens no sea None y tenga los atributos esperados.
             # Ajusta hasattr por new_tokens.get("access_token") si es un diccionario.
-            if new_tokens and hasattr(new_tokens, 'access_token') and hasattr(new_tokens, 'refresh_token'):
+            if new_tokens and hasattr(new_tokens, 'tokens') and hasattr(new_tokens.tokens, 'access_token') and hasattr(new_tokens.tokens, 'refresh_token'):
                 # Valida el nuevo token de acceso inmediatamente para asegurar que la solicitud actual
                 # pueda proceder como autenticada y para poblar request.state.current_user.
                 session_info_after_refresh = None
                 try:
-                    session_info_after_refresh = await auth_service.validate_session(new_tokens.access_token)
+                    session_info_after_refresh = await auth_service.validate_session(new_tokens.tokens.access_token)
                 except Exception: # Podrías capturar excepciones más específicas
                     session_info_after_refresh = None
 
@@ -114,7 +114,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     # "refresh_token a una cookie secure=True"
                     response.set_cookie(
                         key="access_token",
-                        value=new_tokens.access_token,
+                        value=new_tokens.tokens.access_token,
                         httponly=False,  # Permite que JS lo lea para el header 'Authorization'
                         secure=False,    # Como solicitaste. Para desarrollo. En producción, usualmente True si el sitio es HTTPS.
                         samesite="lax",  # Práctica recomendada
@@ -122,7 +122,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     )
                     response.set_cookie(
                         key="refresh_token",
-                        value=new_tokens.refresh_token,
+                        value=new_tokens.tokens.refresh_token,
                         httponly=True,   # HttpOnly para seguridad del refresh_token
                         secure=True,     # Como solicitaste. Bueno para producción (HTTPS).
                         samesite="lax",

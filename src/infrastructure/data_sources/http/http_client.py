@@ -2,7 +2,7 @@ from typing import Optional, Dict, Any
 import httpx
 from fastapi import HTTPException
 
-from core.infrastructure.logger.logger import setup_logger
+from src.infrastructure.utils.logger import setup_logger
 
 logger = setup_logger("HTTPClient")
 

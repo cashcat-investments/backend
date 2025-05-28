@@ -1,27 +1,23 @@
-class UserAuthEntity():
-    id: str
-    email: str
+from src.domain.entities.user_entities import UserEntity
+from pydantic import BaseModel
 
-class TokensEntity():
+
+class CredentialsEntity(BaseModel):
+    email: str
+    password: str
+
+class TokensEntity(BaseModel):
     access_token: str
     refresh_token: str
 
-class AuthResultEntity():
-    user: UserAuthEntity
+class AuthResultEntity(BaseModel):
+    user: UserEntity
     tokens: TokensEntity
 
-class LoginInputEntity():
-    email: str
-    password: str
-
-class RegisterInputEntity():
-    email: str
-    password: str
-
-class OAuthInputEntity():
+class OAuthInputEntity(BaseModel):
     redirect_to: str
     provider: str
 
-class OAuthResponseEntity():
+class OAuthResponseEntity(BaseModel):
     provider: str
     url: str
