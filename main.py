@@ -15,6 +15,10 @@ class AppCreator:
         self.container = AplicationContainer()
         self.settings = self.container.settings()
 
+        # create database tables
+        db = self.container.db()
+        db.create_database()
+
         # set app default
         self.app = FastAPI()
 

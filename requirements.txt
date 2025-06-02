@@ -1,7 +1,7 @@
+asyncpg>=0.30.0
 dependency-injector>=4.46.0
 fastapi[standard]>=0.115.12
-pyhumps>=3.8.0
-supabase>=2.15.1
-asyncpg>=0.30.0
 psycopg2-binary>=2.9.10
+pyhumps>=3.8.0
 sqlalchemy>=2.0.41
+supabase>=2.15.1

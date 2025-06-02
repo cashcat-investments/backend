@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Python virtual environment
+.venv
+venv
+
+# Python bytecode and cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+
+# IDE and editor specific
+.vscode/
+.idea/
+
+# OS specific
+.DS_Store
+
+# Build artifacts
+build/
+dist/
+
+# Test related (if not needed in image)
+.pytest_cache/
+htmlcov/
+
+# Project files not needed in the image, as they are either used for build time
+# or defined/handled by the Dockerfile itself.
+Dockerfile
+README.md
+# pyproject.toml is not directly used by the current Dockerfile, which uses requirements.txt
+pyproject.toml
+uv.lock
+# .python-version is not needed as the Python version is set in the Dockerfile's FROM instruction
+.python-version
+
+# Log files
+*.log
+
+# Local environment configuration
+.env
+*.env 

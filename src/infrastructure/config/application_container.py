@@ -6,6 +6,7 @@ from src.application.services.auth_service import AuthService
 from src.infrastructure.data_sources.http.http_client import HTTPClient
 from src.infrastructure.config.settings import Settings
 from src.infrastructure.data_sources.db.database import Database
+from src.infrastructure.data_sources.db.repositories.user_db_repository import UserDBRepository
 
 class AplicationContainer(containers.DeclarativeContainer):
     # wiring config
@@ -48,6 +49,11 @@ class AplicationContainer(containers.DeclarativeContainer):
         supabase=supabase
     )
 
+    user_repository = providers.Factory(
+        UserDBRepository,
+        session_factory=db.provided.session
+    )
+
     # stock_repository = providers.Factory(
     #     StockRepository,
     #     stock_api=stock_api,
@@ -62,5 +68,6 @@ class AplicationContainer(containers.DeclarativeContainer):
     # services 
     auth_service = providers.Factory(
         AuthService,
-        auth_repository=auth_repository
+        auth_repository=auth_repository,
+        user_repository=user_repository
     )
