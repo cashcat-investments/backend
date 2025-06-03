@@ -20,7 +20,7 @@ class UserDBRepository(IUserRepository):
             users = session.query(User).all()
             return [
                 UserProfileEntity(
-                    id=user.id,
+                    id=str(user.id),
                     email=user.email,
                     first_name=user.first_name,
                     last_name=user.last_name,
@@ -35,7 +35,7 @@ class UserDBRepository(IUserRepository):
             if not user:
                 raise UserNotFoundError(user_id)
             return UserProfileEntity(
-                id=user.id,
+                id=str(user.id),
                 email=user.email,
                 first_name=user.first_name,
                 last_name=user.last_name,
@@ -49,7 +49,7 @@ class UserDBRepository(IUserRepository):
             if not user:
                 raise UserNotFoundError(email)
             return UserProfileEntity(
-                id=user.id,
+                id=str(user.id),
                 email=user.email,
                 first_name=user.first_name,
                 last_name=user.last_name,
@@ -94,7 +94,7 @@ class UserDBRepository(IUserRepository):
             session.delete(entity)
             session.commit()
             return UserProfileEntity(
-                id=entity.id,
+                id=str(entity.id),
                 email=entity.email,
                 first_name=entity.first_name,
                 last_name=entity.last_name,
@@ -110,7 +110,7 @@ class UserDBRepository(IUserRepository):
             session.delete(entity)
             session.commit()
             return UserProfileEntity(
-                id=entity.id,
+                id=str(entity.id),
                 email=entity.email,
                 first_name=entity.first_name,
                 last_name=entity.last_name,
@@ -135,7 +135,7 @@ class UserDBRepository(IUserRepository):
             session.commit()
             session.refresh(entity)
             return UserProfileEntity(
-                id=entity.id,
+                id=str(entity.id),
                 email=entity.email,
                 first_name=entity.first_name,
                 last_name=entity.last_name,
@@ -160,7 +160,7 @@ class UserDBRepository(IUserRepository):
             session.commit()
             session.refresh(entity)
             return UserProfileEntity(
-                id=entity.id,
+                id=str(entity.id),
                 email=entity.email,
                 first_name=entity.first_name,
                 last_name=entity.last_name,
